@@ -16,10 +16,9 @@ export async function signIn(formData: FormData) {
 
   if (error) {
     console.error('Login Error:', error.message)
-    // 実務ではここでエラーメッセージをクライアントに返す処理を入れます
     return { error: error.message }
   }
 
-  // ログイン成功後、ダッシュボード（日記一覧）へ
+  // ログイン成功
   redirect('/dashboard')
 }

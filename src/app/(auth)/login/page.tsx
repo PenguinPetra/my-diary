@@ -1,80 +1,90 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Mail, Lock, LogIn } from 'lucide-react';
 import { AuthBackground } from '@/components/auth/AuthBackground';
 import { signIn } from './actions';
 
 export default function LoginPage() {
   const [pending, setPending] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   return (
     <AuthBackground>
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl rounded-3xl p-8"
-      >
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-light tracking-widest text-slate-600 mb-2">
-            記憶の続きを書く
-          </h1>
-          <p className="text-xs text-slate-400">Welcome back</p>
-        </div>
+      <div className="bg-white/70 backdrop-blur-2xl border border-white/40 shadow-2xl rounded-[2.5rem] p-10 w-full max-w-110 relative overflow-hidden">
+        
+        <header className="text-center mb-10">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-700">記憶の続きを書く</h1>
+          {errorMsg && (
+            <p className="mt-4 text-xs text-red-500 bg-red-50 py-2.5 rounded-xl border border-red-100 px-4">
+              {errorMsg}
+            </p>
+          )}
+        </header>
 
-        <form action={async (formData) => {
-          setPending(true);
-          await signIn(formData);
-          setPending(false);
-        }} className="space-y-6">
-          
+        {/* セパレーター下線 */}
+        <div className="w-full h-px bg-linear-to-r from-transparent via-slate-200 to-transparent mb-10" />
+
+        <form 
+          action={async (formData) => {
+            setPending(true);
+            setErrorMsg(null);
+            const result = await signIn(formData);
+            if (result?.error) {
+              setErrorMsg("ログインに失敗しました。メールアドレスかパスワードが正しくありません。");
+            }
+            setPending(false);
+          }} 
+          className="space-y-8"
+        >
+          {/* 入力フィールドセクション */}
           <div className="space-y-4">
-            {/* メールアドレス */}
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                name="email"
-                type="email"
-                placeholder="メールアドレス"
-                required
-                className="w-full pl-10 pr-4 py-3 bg-white/50 border border-white/20 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-200 transition-all placeholder:text-slate-300 text-slate-600"
+            <div className="relative group">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-3 border-r pr-3 border-slate-200 group-focus-within:border-sky-300 transition-colors">
+                <Mail className="w-4 h-4 text-slate-400 group-focus-within:text-sky-500" />
+              </div>
+              <input 
+                name="email" type="email" placeholder="メールアドレス" required 
+                className="w-full pl-16 pr-4 py-4 bg-white/80 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-400 text-slate-600 font-medium transition-all placeholder:text-slate-300 shadow-sm" 
               />
             </div>
 
-            {/* パスワード */}
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                name="password"
-                type="password"
-                placeholder="パスワード"
-                required
-                className="w-full pl-10 pr-4 py-3 bg-white/50 border border-white/20 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-200 transition-all placeholder:text-slate-300 text-slate-600"
+            <div className="relative group">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-3 border-r pr-3 border-slate-200 group-focus-within:border-sky-300 transition-colors">
+                <Lock className="w-4 h-4 text-slate-400 group-focus-within:text-sky-500" />
+              </div>
+              <input 
+                name="password" type="password" placeholder="パスワード" required 
+                className="w-full pl-16 pr-4 py-4 bg-white/80 border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-400 text-slate-600 font-medium transition-all placeholder:text-slate-300 shadow-sm" 
               />
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={pending}
-            className="w-full py-3 bg-blue-400/80 hover:bg-blue-500 text-white rounded-full font-light tracking-widest shadow-lg shadow-blue-200/50 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+          <button 
+            type="submit" 
+            disabled={pending} 
+            className="w-full py-4 bg-slate-800 text-white rounded-2xl font-bold tracking-widest shadow-xl shadow-slate-200 hover:bg-slate-700 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            <LogIn className="w-4 h-4" />
-            {pending ? 'ログイン中...' : 'ログイン'}
+            {pending ? (
+              '照合中...'
+            ) : (
+              <>
+                <LogIn size={20} />
+                <span>ログイン</span>
+              </>
+            )}
           </button>
         </form>
 
-        <div className="mt-8 text-center space-y-2">
+        <div className="mt-10 text-center space-y-2">
           <p className="text-xs text-slate-400">
             はじめての方はこちら
           </p>
-          <a href="/register" className="inline-block text-xs text-sky-500 hover:text-sky-600 font-medium transition-colors">
+          <a href="/register" className="inline-block text-2xs text-sky-500 hover:text-sky-600 font-medium transition-colors">
             新しくアカウントを作る
           </a>
         </div>
-      </motion.div>
+      </div>
     </AuthBackground>
   );
 }

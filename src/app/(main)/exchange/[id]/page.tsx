@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { ChevronLeft, Send, Calendar, ChevronRight } from 'lucide-react';
+import { useState, useEffect, use } from 'react'; // use を追加
+import { ChevronLeft, Send, Calendar, ChevronRight, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
-import { postEntry, markAsRead } from '../actions';
+import { postEntry, markAsRead, deleteExchangeDiary } from '../actions';
 import type { User } from '@supabase/supabase-js';
+import { useRouter } from 'next/navigation';
 
 interface Entry {
   id: string;
@@ -21,13 +22,19 @@ interface Entry {
   };
 }
 
-export default function ExchangeDetailPage({ params }: { params: { id: string } }) {
+// params の型を Promise に変更
+export default function ExchangeDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  // params を展開して diaryId を取得
+  const resolvedParams = use(params);
+  const diaryId = resolvedParams.id;
+
   const [entries, setEntries] = useState<Entry[]>([]);
   const [diaryTitle, setDiaryTitle] = useState('');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,7 +44,7 @@ export default function ExchangeDetailPage({ params }: { params: { id: string } 
       const { data: diary } = await supabase
         .from('exchange_diaries')
         .select('title')
-        .eq('id', params.id)
+        .eq('id', diaryId) // diaryId を使用
         .single();
       if (diary) setDiaryTitle(diary.title);
 
@@ -47,7 +54,7 @@ export default function ExchangeDetailPage({ params }: { params: { id: string } 
           id, content, created_at, author_id, is_read,
           author:profiles!exchange_diary_entries_author_id_fkey(username, avatar_url)
         `)
-        .eq('diary_id', params.id)
+        .eq('diary_id', diaryId) // diaryId を使用
         .order('created_at', { ascending: true });
 
       const formattedEntries = (rawEntries as unknown as Entry[]) || [];
@@ -57,13 +64,13 @@ export default function ExchangeDetailPage({ params }: { params: { id: string } 
       setCurrentPage(Math.max(0, pageCount - 1));
 
       if (formattedEntries.some(e => e.author_id !== user?.id && !e.is_read)) {
-        await markAsRead(params.id);
+        await markAsRead(diaryId); // diaryId を使用
       }
       setLoading(false);
     };
 
     fetchData();
-  }, [params.id, supabase]);
+  }, [diaryId, supabase]); // 依存配列を diaryId に変更
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -71,9 +78,20 @@ export default function ExchangeDetailPage({ params }: { params: { id: string } 
     const content = formData.get('content') as string;
     if (!content.trim()) return;
 
-    const result = await postEntry(params.id, content);
+    const result = await postEntry(diaryId, content); // diaryId を使用
     if (result.success) {
       window.location.reload();
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('この交換日記を削除しますか？\nこれまでの記録がすべて削除されます。')) return;
+    
+    const result = await deleteExchangeDiary(diaryId); // diaryId を使用
+    if (result.success) {
+      router.push('/exchange');
+    } else {
+      alert('削除に失敗しました: ' + result.error);
     }
   };
 
@@ -91,26 +109,31 @@ export default function ExchangeDetailPage({ params }: { params: { id: string } 
   return (
     <div className="min-h-screen bg-[#e2ddd3] pb-32">
       <header className="sticky top-0 z-30 p-4 max-w-5xl mx-auto flex items-center justify-between">
-  <div className="flex-1">
-    <Link 
-      href="/exchange" 
-      className="inline-flex items-center gap-2 px-3 py-2 bg-white/60 backdrop-blur-sm border border-slate-200 text-slate-600 rounded-lg hover:bg-white hover:text-amber-600 hover:shadow-md transition-all group"
-    >
-      <ChevronLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
-      <span className="text-sm font-bold font-serif">ノートを閉じる</span>
-    </Link>
-  </div>
-  
-  <div className="text-center flex-1">
-    <h1 className="text-lg font-bold text-slate-800 font-serif truncate">{diaryTitle}</h1>
-    <p className="text-[9px] text-slate-500 tracking-[0.3em] uppercase">Archive</p>
-  </div>
-  
-  {/* 右側のバランス用スペース（または設定ボタンなど） */}
-  <div className="flex-1 flex justify-end">
-    <div className="w-10 h-10" /> 
-  </div>
-</header>
+        <div className="flex-1">
+          <Link 
+            href="/exchange" 
+            className="inline-flex items-center gap-2 px-3 py-2 bg-white/60 backdrop-blur-sm border border-slate-200 text-slate-600 rounded-lg hover:bg-white hover:text-amber-600 hover:shadow-md transition-all group"
+          >
+            <ChevronLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
+            <span className="text-sm font-bold font-serif">ノートを閉じる</span>
+          </Link>
+        </div>
+        
+        <div className="text-center flex-1">
+          <h1 className="text-lg font-bold text-slate-800 font-serif truncate">{diaryTitle}</h1>
+          <p className="text-[9px] text-slate-500 tracking-[0.3em] uppercase">Archive</p>
+        </div>
+        
+        <div className="flex-1 flex justify-end">
+          <button 
+            onClick={handleDelete}
+            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+            title="日記を削除"
+          >
+            <Trash2 size={20} />
+          </button>
+        </div>
+      </header>
 
       <main className="max-w-6xl mx-auto p-4 flex flex-col items-center">
         <div className="relative w-full aspect-4/3 md:aspect-video max-h-150 mt-4">

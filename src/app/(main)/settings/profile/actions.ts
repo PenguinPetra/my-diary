@@ -16,43 +16,45 @@ export async function updateProfile(formData: FormData) {
 
   let finalAvatarUrl = avatarUrl;
 
-  // 1. クロップされた新しい画像データがある場合、Storageにアップロード
+  // 1. 新しい画像データ（Base64）がある場合、Storageにアップロード
   if (resizedImageData && resizedImageData.startsWith('data:image')) {
-    const base64Data = resizedImageData.split(',')[1];
-    const buffer = Buffer.from(base64Data, 'base64');
-    const fileName = `${user.id}/${Date.now()}.jpg`;
+    try {
+      const base64Data = resizedImageData.split(',')[1];
+      const buffer = Buffer.from(base64Data, 'base64');
+      const fileName = `${user.id}/${Date.now()}.jpg`;
 
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(fileName, buffer, {
-        contentType: 'image/jpeg',
-        upsert: true,
-      });
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, buffer, {
+          contentType: 'image/jpeg',
+          upsert: true,
+        });
 
-    if (uploadError) return { error: '画像のアップロードに失敗しました' };
-    
-    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
-    finalAvatarUrl = publicUrl;
+      if (uploadError) return { error: '画像の保存に失敗しました' };
+      
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
+      finalAvatarUrl = publicUrl;
+    } catch  {
+      return { error: '画像処理中にエラーが発生しました' };
+    }
   } 
-  // 2. アップロード画像がなく、かつ外部API（Google等）のアイコンが利用可能な場合
-  else if (!finalAvatarUrl && user.user_metadata?.avatar_url) {
-    finalAvatarUrl = user.user_metadata.avatar_url;
-  }
 
-  // プロフィール情報の更新
+  // 2. プロフィール情報の更新
   const { error: updateError } = await supabase
     .from('profiles')
-    .update({
+    .upsert({
+      id: user.id, // upsertで確実に自分を特定
       username: username,
       avatar_url: finalAvatarUrl,
       updated_at: new Date().toISOString(),
-    })
-    .eq('id', user.id);
+    });
 
-  if (updateError) return { error: 'プロフィールの更新に失敗しました' };
+  if (updateError) return { error: 'データベースの更新に失敗しました' };
 
-  // キャッシュを更新して遷移
+  // キャッシュをクリア
   revalidatePath('/dashboard');
   revalidatePath('/settings/profile');
+  
+  // 最後にダッシュボードへ戻る
   redirect('/dashboard');
 }

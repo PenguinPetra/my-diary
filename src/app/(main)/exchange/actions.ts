@@ -3,7 +3,35 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 
-// ★追加：既読にする処理
+// ★追加：日記を削除する処理
+export async function deleteExchangeDiary(diaryId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+
+  // 権限チェック（参加者のみ削除可能）
+  const { data: participant } = await supabase
+    .from('exchange_diary_participants')
+    .select('*')
+    .eq('diary_id', diaryId)
+    .eq('profile_id', user.id)
+    .single();
+
+  if (!participant) return { error: '権限がありません' };
+
+  // 削除実行（CASCADE設定があれば関連データも消えます）
+  const { error } = await supabase
+    .from('exchange_diaries')
+    .delete()
+    .eq('id', diaryId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath('/exchange');
+  revalidatePath('/dashboard');
+  return { success: true };
+}
+
 export async function markAsRead(diaryId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -31,11 +59,10 @@ export async function postEntry(diaryId: string, content: string) {
   if (error) return { error: error.message };
   
   revalidatePath(`/exchange/${diaryId}`);
-  revalidatePath('/dashboard'); // 通知を更新するために追加
+  revalidatePath('/dashboard');
   return { success: true };
 }
 
-// createExchangeDiary は変更なし
 export async function createExchangeDiary(title: string, partnerId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
