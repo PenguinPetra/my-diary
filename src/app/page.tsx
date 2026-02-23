@@ -8,5 +8,5 @@ import { redirect } from 'next/navigation';
  * ログイン済みならそのまま表示、未ログインなら自動的に /login へ誘導されます。
  */
 export default function Home() {
-  redirect('/dashboard');
+  redirect('/login');
 }
