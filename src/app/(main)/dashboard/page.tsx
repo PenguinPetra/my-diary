@@ -1,8 +1,8 @@
-import Link from 'next/link';
 import { getDiaries, deleteDiary } from './actions';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { 
   LogOut, 
   Users, 
@@ -10,7 +10,7 @@ import {
   Plus 
 } from 'lucide-react';
 import DashboardContent from './DashboardContent';
-import TimeOfDayBackground from './TimeOfDayBackground'; // 新しく追加する背景コンポーネント
+import TimeOfDayBackground from './TimeOfDayBackground';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -56,55 +56,67 @@ export default async function DashboardPage() {
   }
 
   return (
-    // 背景コンポーネントで全体をラップ
-    <TimeOfDayBackground>
-      <div className="min-h-screen text-slate-600 relative z-10"> {/* z-10で背景の上に表示 */}
-        <header className="bg-white/70 backdrop-blur-md border-b border-slate-100 sticky top-0 z-30 px-6 py-4">
-          <div className="max-w-6xl mx-auto flex justify-between items-center">
+    <div className="min-h-screen flex flex-col">
+      {/* --- ヘッダーバー：bg-whiteとshadowを削除して背景に馴染ませる --- */}
+      <header className="h-16 px-6 w-full relative z-20">
+        <div className="max-w-7xl mx-auto h-full flex justify-between items-center relative">
+          
+          <div className="w-40 shrink-0">
             <h1 className="text-xl font-black tracking-tighter text-slate-800">my-diary</h1>
+          </div>
 
-            <div className="flex items-center gap-4 md:gap-8">
-              <Link href="/diary/new" className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-sky-100 transition-all active:scale-95">
-                <Plus size={18} />
-                <span className="hidden sm:inline">日記を書く</span>
+          <div id="header-tabs-slot" className="absolute left-1/2 -translate-x-1/2 flex items-center h-full" />
+
+          <div className="flex items-center gap-4 shrink-0">
+            <Link href="/diary/new" className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-sky-500/20 transition-all active:scale-95">
+              <Plus size={18} />
+              <span className="hidden sm:inline">日記を書く</span>
+            </Link>
+
+            <div className="flex items-center gap-4 border-l border-slate-200/50 ml-2 pl-4">
+              <div className="text-right hidden md:block">
+                <p className="text-xs font-bold text-slate-800 leading-none mb-1">{profile?.username || 'Guest'}</p>
+                <div className="flex gap-3 justify-end">
+                  <Link href="/exchange" className="relative flex items-center gap-1 text-[10px] font-bold text-slate-500 hover:text-amber-500 transition-colors">
+                    <Book size={12} /> 
+                    <span>交換日記</span>
+                    {exchangeUnreadCount > 0 && <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />}
+                  </Link>
+                  <Link href="/friends" className="relative flex items-center gap-1 text-[10px] font-bold text-slate-500 hover:text-sky-500 transition-colors">
+                    <Users size={12} /> 
+                    <span>フレンド</span>
+                    {(pendingCount ?? 0) > 0 && <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse" />}
+                  </Link>
+                </div>
+              </div>
+
+              <Link href="/settings/profile" className="relative w-9 h-9 rounded-full border border-slate-200 overflow-hidden bg-slate-100 shadow-sm">
+                <Image src={profile?.avatar_url || '/default-avatar.png'} alt="Avatar" fill className="object-cover" unoptimized />
               </Link>
 
-              <div className="flex items-center gap-3">
-                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-bold text-slate-700 leading-none mb-1">{profile?.username || 'Guest'}</p>
-                  <div className="flex gap-3 justify-end">
-                    <Link href="/exchange" className="relative flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-amber-500 transition-colors">
-                      <Book size={10} /> 交換日記
-                      {exchangeUnreadCount > 0 && <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />}
-                    </Link>
-                    <Link href="/friends" className="relative flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-sky-500 transition-colors">
-                      <Users size={10} /> フレンド
-                      {(pendingCount ?? 0) > 0 && <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse" />}
-                    </Link>
-                  </div>
-                </div>
-
-                <Link href="/settings/profile" className="relative w-10 h-10 rounded-full border-2 border-white shadow-sm overflow-hidden bg-slate-100 hover:ring-2 hover:ring-sky-100 transition-all">
-                  <Image 
-                    src={profile?.avatar_url || '/default-avatar.png'} 
-                    alt="Avatar" fill className="object-cover" unoptimized 
-                  />
-                </Link>
-
-                <form action={logout}>
-                  <button className="p-2 text-slate-300 hover:text-red-400 transition-colors">
-                    <LogOut size={18} />
-                  </button>
-                </form>
-              </div>
+              <form action={logout}>
+                <button className="p-2 text-slate-400 hover:text-red-500 transition-colors cursor-pointer">
+                  <LogOut size={18} />
+                </button>
+              </form>
             </div>
           </div>
-        </header>
+        </div>
+      </header>
 
-        <main className="max-w-5xl mx-auto p-6 mt-4">
-          <DashboardContent initialDiaries={diaries} deleteDiaryAction={deleteDiary} />
-        </main>
+      {/* --- メインコンテンツ領域 --- */}
+      <div className="flex-1">
+        <TimeOfDayBackground>
+          {/* 指定された main 要素のスタイル（白背景）を削除 */}
+          <div className="max-w-5xl mx-auto w-full p-6 pt-10 min-h-screen relative">
+            <DashboardContent initialDiaries={diaries} deleteDiaryAction={deleteDiary} />
+          </div>
+          
+          <footer className="py-10 text-center text-slate-400/60 text-xs font-bold tracking-widest mt-10">
+            &copy; 2026 MY DIARY APP
+          </footer>
+        </TimeOfDayBackground>
       </div>
-    </TimeOfDayBackground>
+    </div>
   );
 }

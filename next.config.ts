@@ -3,12 +3,17 @@ const nextConfig = {
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'api.dicebear.com' },
-      { protocol: 'https', hostname: 'tevgdvbbvtbbdvytgllw.supabase.co' },
+      { 
+        protocol: 'https', 
+        hostname: 'tevgdvbbvtbbdvytgllw.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**', // すべての公開バケットを許可
+      },
     ],
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: '4mb', // 1MBから4MBに拡張
+      bodySizeLimit: '4mb', 
     },
   },
 };
