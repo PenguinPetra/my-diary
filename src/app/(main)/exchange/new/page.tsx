@@ -1,6 +1,5 @@
 'use client';
 
-// 1. 動的レンダリングを強制（追記済み）
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
@@ -31,10 +30,7 @@ export default function NewExchangePage() {
 
   useEffect(() => {
     const fetchFriends = async () => {
-      // 2. 修正ポイント：関数の中でクライアントを作成する
-      // これにより、ビルド時ではなくブラウザ実行時にのみ初期化されます
       const supabase = createClient();
-      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -57,7 +53,7 @@ export default function NewExchangePage() {
       }
     };
     fetchFriends();
-  }, []); // supabaseを依存配列から除外
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,48 +70,52 @@ export default function NewExchangePage() {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-4 md:p-6 space-y-8">
-      <div className="flex items-center gap-2">
-        <Link href="/exchange" className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-all">
+    <div className="max-w-2xl mx-auto px-4 py-6 md:py-10 space-y-6 md:space-y-10">
+      {/* ヘッダー */}
+      <div className="flex items-center gap-3">
+        <Link href="/exchange" className="p-2 -ml-2 text-slate-400 hover:bg-white hover:text-slate-600 rounded-full transition-all shrink-0">
           <ChevronLeft size={24} />
         </Link>
-        <h1 className="text-xl font-bold text-slate-700">新しい交換日記</h1>
+        <h1 className="text-lg md:text-xl font-bold text-slate-700 font-serif">新しい交換日記</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-10">
+      <form onSubmit={handleSubmit} className="space-y-8 md:space-y-12">
         {/* ノートデザインセクション */}
-        <section className="bg-white p-6 md:p-10 rounded-sm shadow-xl border-t-12 border-amber-400 relative overflow-hidden ring-1 ring-slate-200">
+        <section className="bg-[#fdfaf3] p-6 md:p-12 rounded-sm shadow-xl border-t-10 md:border-t-14 border-amber-400 relative overflow-hidden ring-1 ring-slate-200">
           {/* ノートの縦線（紅線） */}
-          <div className="absolute left-6 top-0 bottom-0 w-px bg-rose-200" />
+          <div className="absolute left-6 md:left-10 top-0 bottom-0 w-px bg-rose-200/60" />
           
-          <div className="pl-6 space-y-6">
-            <div className="flex justify-between items-end border-b border-slate-300 pb-1">
-              <span className="text-[10px] font-mono text-slate-400">NO. ______</span>
+          <div className="pl-6 md:pl-12 space-y-8">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-end border-b border-slate-200 pb-2 gap-2">
+              <span className="text-[10px] font-mono text-slate-300 tracking-tighter">NO. EX-001</span>
               <span className="text-[10px] font-mono text-slate-400">DATE. {new Date().toLocaleDateString()}</span>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-amber-600 tracking-[0.2em] flex items-center gap-2">
-                <BookText size={14} /> EXCHANGE DIARY TITLE
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-amber-600 tracking-[0.3em] flex items-center gap-2 uppercase">
+                <BookText size={14} /> Diary Title
               </label>
               <input
                 type="text"
                 placeholder="二人の日記のタイトル..."
-                className="w-full text-2xl bg-transparent border-b-2 border-slate-100 focus:border-amber-400 outline-none pb-2 transition-all font-serif placeholder:text-slate-200"
+                className="w-full text-xl md:text-3xl bg-transparent border-b border-slate-100 focus:border-amber-400 outline-none pb-3 transition-all font-serif placeholder:text-slate-200 leading-relaxed"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
               />
             </div>
           </div>
+          
+          {/* ノート下の影演出 */}
+          <div className="absolute bottom-0 right-0 w-32 h-32 bg-linear-to-br from-transparent to-black/5 pointer-events-none" />
         </section>
 
         {/* フレンド選択 */}
         <section className="space-y-4">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-2">Select Best Friend</h2>
-          <div className="grid grid-cols-1 gap-2">
+          <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Select Partner</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {friends.length === 0 ? (
-              <p className="text-center py-12 text-slate-400 bg-white rounded-2xl border border-slate-100">
+              <p className="col-span-full text-center py-16 text-slate-400 bg-white/50 rounded-2xl border border-dashed border-slate-200">
                 フレンドがまだいないようです
               </p>
             ) : (
@@ -124,39 +124,63 @@ export default function NewExchangePage() {
                   key={friend.id}
                   type="button"
                   onClick={() => setSelectedFriendId(friend.id)}
-                  className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${
+                  className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all group ${
                     selectedFriendId === friend.id
-                      ? 'border-amber-400 bg-amber-50 shadow-inner'
-                      : 'border-slate-50 bg-white hover:border-slate-200'
+                      ? 'border-amber-400 bg-amber-50 shadow-md translate-y-0.5'
+                      : 'border-white bg-white hover:border-slate-200 shadow-sm'
                   }`}
                 >
-                  <div className="relative w-10 h-10">
+                  <div className="relative w-11 h-11 shrink-0">
                     <Image
                       src={friend.avatar_url || '/default-avatar.png'}
                       alt=""
                       fill
-                      className="rounded-full object-cover"
+                      className="rounded-full object-cover border-2 border-white shadow-sm"
                       unoptimized
                     />
+                    {selectedFriendId === friend.id && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 rounded-full flex items-center justify-center text-white border-2 border-amber-50">
+                        <div className="w-2 h-2 bg-white rounded-full" />
+                      </div>
+                    )}
                   </div>
-                  <span className={`font-bold ${selectedFriendId === friend.id ? 'text-amber-700' : 'text-slate-600'}`}>
-                    {friend.username}
-                  </span>
+                  <div className="text-left overflow-hidden">
+                    <span className={`block font-bold truncate ${selectedFriendId === friend.id ? 'text-amber-800' : 'text-slate-600'}`}>
+                      {friend.username}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-medium">Friend</span>
+                  </div>
                 </button>
               ))
             )}
           </div>
         </section>
 
-        <button
-          type="submit"
-          disabled={loading || !selectedFriendId || !title}
-          className="w-full py-4 bg-slate-800 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-700 disabled:opacity-20 transition-all shadow-lg active:translate-y-1"
-        >
-          <Send size={18} />
-          日記を交換しにいく
-        </button>
+        {/* 送信ボタン */}
+        <div className="pt-4 sticky bottom-6 md:static">
+          <button
+            type="submit"
+            disabled={loading || !selectedFriendId || !title}
+            className="w-full py-5 bg-slate-800 text-white rounded-2xl font-bold tracking-widest flex items-center justify-center gap-3 hover:bg-slate-900 disabled:opacity-20 transition-all shadow-xl shadow-slate-200 active:scale-95"
+          >
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>
+                <Send size={20} className="rotate-[-10deg]" />
+                日記を交換しにいく
+              </>
+            )}
+          </button>
+        </div>
       </form>
+      
+      {/* デコレーション用（スマホでも邪魔にならない程度に） */}
+      <style jsx global>{`
+        body {
+          background-color: #f8f9fa;
+        }
+      `}</style>
     </div>
   );
 }
