@@ -37,7 +37,6 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
   const supabase = createClient();
   const router = useRouter();
 
-  // 画面幅の監視
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
@@ -69,7 +68,6 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
       const formattedEntries = (rawEntries as unknown as Entry[]) || [];
       setEntries(formattedEntries);
       
-      // 初期ページを最後のエントリに設定
       if (window.innerWidth < 768) {
         setCurrentPage(Math.max(0, formattedEntries.length - 1));
       } else {
@@ -108,7 +106,6 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
 
   if (loading) return <div className="min-h-screen bg-[#f8f5f0] flex items-center justify-center font-serif text-slate-400">ノートを開いています...</div>;
 
-  // ページ分割ロジック
   const pagedEntries: Entry[][] = [];
   const step = isMobile ? 1 : 2;
   for (let i = 0; i < entries.length; i += step) {
@@ -253,6 +250,7 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
           background-color: #fdfaf3;
           background-image: linear-gradient(#e5e7eb 1px, transparent 1px);
           background-size: 100% 40px;
+          background-attachment: local; /* スクロールに合わせて背景も動かす */
         }
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;
@@ -267,13 +265,16 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
 }
 
 function PageContent({ entry, isLeft }: { entry: Entry, isLeft: boolean }) {
-  // モバイル時はパディングを均等に、PC時は見開きを考慮
+  // パディングから上下の余白(py-2)を削除し、マスの位置制御を厳密化
   const paddingStyle = isLeft 
     ? 'pl-6 md:pl-12 pr-4 md:pr-10' 
     : 'pl-4 md:pl-10 pr-6 md:pr-12';
 
   return (
-    <div className={`w-full min-h-full py-2 ${paddingStyle}`}>
+    <div className={`w-full min-h-full py-0 ${paddingStyle}`}>
+      {/* 高さを40px（background-sizeと同じ）に固定することで、
+         直後の本文が必ず次のラインの開始位置に揃います。
+      */}
       <div className="flex items-center justify-between h-10 border-b border-rose-200/40">
         <div className="flex items-center gap-2">
           <div className="w-5 h-5 relative rounded-full overflow-hidden shrink-0">
@@ -293,9 +294,15 @@ function PageContent({ entry, isLeft }: { entry: Entry, isLeft: boolean }) {
         </div>
       </div>
 
+      {/* lineHeightを40pxに設定。
+         paddingTopを0にすることで、1行目がぴったりラインの上に乗ります。
+      */}
       <div 
-        className="text-slate-700 font-serif text-sm md:text-base whitespace-pre-wrap break-all tracking-wide py-2"
-        style={{ lineHeight: '40px' }}
+        className="text-slate-700 font-serif text-sm md:text-base whitespace-pre-wrap break-all tracking-wide"
+        style={{ 
+          lineHeight: '40px',
+          paddingTop: '0px'
+        }}
       >
         {entry.content}
       </div>
