@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Send HTTP GET request
         run: |
-          curl -X GET "https://my-dialy-demo.vercel.app/" -v --fail || exit 1
+          curl -X GET "https://my-diary-wheat.vercel.app/" -v --fail || exit 1
 
       - name: Log request time
         run: |
