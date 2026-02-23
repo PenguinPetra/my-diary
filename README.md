@@ -1,36 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## はじめに
+- 本リポジトリは、開発者（PenguinPetra）自身が「本当に使いたい」という思いから開発された、日記アプリ「my-diary」に関するものです。
+- 作成したアプリはこちら
+https://my-diary-wheat.vercel.app/
+- ご利用いただくことでのトラブル等は一切責任を負いかねます。
+## コンセプト
+- 「理想の追求が生んだ、日記の到達点」
+- 世に溢れる日記アプリに満足できなかった開発者が、自らの理想とする「使いやすさ」と「利便性」を追い求め、幾度もの試行錯誤を重ねて辿り着いた答え。それが、この「my-diary」です。
+* 感性に響く体験：日記を開いた瞬間、当時の思い出が鮮やかに浮かび上がるような「懐かしさ」の演出
+* 日常を豊かにする実用性：日記という枠を超え、タスク管理機能の搭載
+## アプリ概要
+- 本アプリでは「日記の作成」、「日記の閲覧」ができるアプリです。
+- さらに、タスク管理を行う「タスク日記」やフレンドと行う「交換日記」機能が搭載されています。
+## 機能
+- 機能説明では、特に私がこだわった個所をピックアップして説明します。
+- ➀アイコン作成機能
+- 
+## 開発環境
+- 言語/フレームワーク： TypeScript、Next.js 15(App Router)
+- UI/スタイリング：Tailwind CSS、Framer Motion(アニメーション)
+- データベース/認証：Supabase(PostgreSQL、Auth、Storage)
+- インフラ：Vercel
+- 検証済みブラウザ：Google Chrome
+## 利用方法
+- 「はじめに」で記載したリンクにアクセスします。
+- アカウント作成を行い、ログインします。
+- 「+」ボタンをクリックすると、日記を作成できます。
+- 「デイリー」をクリックすると、現在の時刻から近い順に表示されます。
+- 「カレンダー」をクリックすると、日記がある日が青色になっています。クリックするとその日の日記を閲覧できます。
+- フレンド機能は人のアイコンをクリックすると、使用できます。フレンド検索では、ユーザー名で検索することが可能です。片方が申請し、もう片方が承認すればフレンドになれます。
+- 交換日記機能はbookアイコンをクリックすると、フレンドとのみ交換日記をすることができます。
+## 開発期間
+- 2026.02.01 ~ 2026.02.24（約100時間）
+## おわりに
+- 私が考えた最強の日記アプリ「my-diary」をご覧くださりありがとうございます。
+- また、使用していただきありがとうございます。
