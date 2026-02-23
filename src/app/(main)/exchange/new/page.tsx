@@ -1,5 +1,8 @@
 'use client';
 
+// 1. 動的レンダリングを強制（追記済み）
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { ChevronLeft, BookText, Send } from 'lucide-react';
@@ -14,7 +17,6 @@ interface Friend {
   avatar_url: string;
 }
 
-// 修正ポイント：Supabaseのレスポンス用の型を定義
 interface FriendResponse {
   requester: Friend | Friend[] | null;
   receiver: Friend | Friend[] | null;
@@ -26,10 +28,13 @@ export default function NewExchangePage() {
   const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   useEffect(() => {
     const fetchFriends = async () => {
+      // 2. 修正ポイント：関数の中でクライアントを作成する
+      // これにより、ビルド時ではなくブラウザ実行時にのみ初期化されます
+      const supabase = createClient();
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -42,7 +47,6 @@ export default function NewExchangePage() {
         .eq('status', 'accepted');
 
       if (data) {
-        // 修正ポイント：any を使わずに型安全に変換
         const typedData = data as unknown as FriendResponse[];
         const formatted = typedData.map((f) => {
           const req = Array.isArray(f.requester) ? f.requester[0] : f.requester;
@@ -53,7 +57,7 @@ export default function NewExchangePage() {
       }
     };
     fetchFriends();
-  }, [supabase]);
+  }, []); // supabaseを依存配列から除外
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
