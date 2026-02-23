@@ -1,8 +1,10 @@
 'use client';
 
+// 1. ビルドエラー回避のため動的レンダリングを強制
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-// 修正ポイント：ChevronLeft をインポートに追加
 import { Users, UserMinus, Search, UserPlus, ChevronLeft } from 'lucide-react';
 import { acceptFriendRequest, removeFriend, sendFriendRequest, searchUsers } from './actions';
 import Image from 'next/image';
@@ -42,10 +44,12 @@ export default function FriendsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  
-  const supabase = createClient();
 
+  // データ取得関数
   const fetchData = useCallback(async () => {
+    // 2. 修正：関数内でクライアントを作成（ビルド時のエラー防止）
+    const supabase = createClient();
+    
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     setCurrentUserId(user.id);
@@ -72,7 +76,7 @@ export default function FriendsPage() {
 
     setFriends((acceptedData as unknown as RawFriendshipResponse[])?.map(format) || []);
     setPendingRequests((pendingData as unknown as RawFriendshipResponse[])?.map(format) || []);
-  }, [supabase]);
+  }, []); // 依存配列から supabase を除外
 
   useEffect(() => { 
     fetchData(); 
@@ -93,7 +97,6 @@ export default function FriendsPage() {
       <header className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {/* 戻るボタン */}
             <Link 
               href="/dashboard" 
               className="p-2 -ml-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all"
