@@ -107,6 +107,22 @@ https://my-diary-wheat.vercel.app/
 - データベース/認証：Supabase(PostgreSQL、Auth、Storage)
 - インフラ：Vercel
 - 検証済みブラウザ：Google Chrome
+## src内のディレクトリー環境（簡潔に）
+```text
+src/
+├── app/            # App Router (ルーティング・各画面のレイアウト)
+│   ├── (auth)/     # 認証関連：login (ログイン), register (新規登録)
+│   ├── (main)/     # メイン機能：dashboard（日記一覧）, diary（日記作成）, exchange（交換日記）, friends（フレンド機能）, settings（プロフィール）
+│   ├── layout.tsx  # 全体共通レイアウト（Navbar等）
+│   ├── globals.css # アプリ全体の共通スタイル・Tailwind CSSの設定
+│   └── page.tsx    # トップページ
+├── components/     # 再利用可能なUIコンポーネント
+│   ├── auth/       # 認証フォーム、ログアウトボタン等
+│   ├── diary/      # 日記カード、カレンダー、エディタ等
+│   └── common/     # ボタン、モーダル等の共通パーツ
+├── lib/            # 外部サービス設定・ユーティリティ
+│   └── supabase/   # Supabaseクライアントの初期化設定   
+```
 ## 利用方法
 - 「はじめに」で記載したリンクにアクセスします。
 - アカウント作成を行い、ログインします。
